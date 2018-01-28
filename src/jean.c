@@ -2,12 +2,12 @@
 
 # include "jean.h"
 
-void movejean (struct hero *jean, Mix_Chunk *fx[]) {
+void movejean (struct hero *jean, Sound *fx[]) {
 
 	/* Jump */
 	if (jean->jump == 1) {
 		if (jean->height == 0) /* Jump sound */
-			Mix_PlayChannel(-1, fx[3], 0);
+			aud_PlaySound(-1, fx[3], 0);
 		if (jean->height < 56) {
 			jean->height += 1.6;
 			if ((jean->collision[0] == 0) && (jean->height < 44))
@@ -58,12 +58,12 @@ void movejean (struct hero *jean, Mix_Chunk *fx[]) {
 
 }
 
-void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int counter[],Mix_Chunk *fx[],uint changetiles) {
+void drawjean (Texture *tiles,struct hero *jean,uint counter[],Sound *fx[],uint changetiles) {
 
-	SDL_Rect srctile = {320,88,16,24};
-	SDL_Rect destile = {0,0,16,24};
-	SDL_Rect srcducktile = {448,88,18,13};
-	SDL_Rect desducktile = {0,0,18,13};
+	Rect srctile = {320,88,16,24};
+	Rect destile = {0,0,16,24};
+	Rect srcducktile = {448,88,18,13};
+	Rect desducktile = {0,0,18,13};
 	int r = 0;
 
 	if (jean->death == 0) {
@@ -80,7 +80,7 @@ void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int c
 				srctile.h = (176 - jean->y);
 			if (changetiles == 1)
 				srctile.y = 208;
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 		}
 		else {
   		srcducktile.x += (jean->direction * 36) + ((jean->animation / 7) * 18);
@@ -88,7 +88,7 @@ void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int c
 			desducktile.x = jean->x;
 			if (changetiles == 1)
 				srcducktile.y = 208;
-			SDL_RenderCopy(renderer,tiles,&srcducktile,&desducktile);
+			gfx_RenderCopy(tiles,&srcducktile,&desducktile);
 		}
 	}
 
@@ -97,14 +97,14 @@ void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int c
 		jean->death += 1;
 		destile.x = jean->x;
 		destile.y = jean->y;
-		Mix_PauseMusic ();
+		aud_PauseMusic ();
 		if (jean->death == 2)
-			Mix_PlayChannel(-1, fx[6], 0);
+			aud_PlaySound(-1, fx[6], 0);
 		if ((jean->death < 8) || ((jean->death > 23) && (jean->death < 32)) || ((jean->death > 47) && (jean->death < 56))) {
 			srctile.x = 368 + (jean->direction * 64);
 			if (changetiles == 1)
 				srctile.y = 208;
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 		}
 		if (((jean->death > 7) && (jean->death < 16)) || ((jean->death > 31) && (jean->death < 40)) || ((jean->death > 55) && (jean->death < 64))) {
 			srctile.x = 536;
@@ -112,7 +112,7 @@ void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int c
 				srctile.y = 207;
 			else
 				srctile.y = 87;
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 		}
 		if (((jean->death > 15) && (jean->death < 24)) || ((jean->death > 39) && (jean->death < 48)) || ((jean->death > 63) && (jean->death < 73))) {
 			srctile.x = 520;
@@ -120,7 +120,7 @@ void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int c
 				srctile.y = 207;
 			else
 				srctile.y = 87;
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 		}
 	}
 
@@ -136,7 +136,7 @@ void drawjean (SDL_Renderer *renderer,SDL_Texture *tiles,struct hero *jean,int c
 
 }
 
-void collisions (struct hero *jean,uint stagedata[][22][32],int room[]) {
+void collisions (struct hero *jean,uint stagedata[][22][32],uint room[]) {
 
 	int blleft = 0;
 	int blright = 0;
@@ -268,7 +268,7 @@ void collisions (struct hero *jean,uint stagedata[][22][32],int room[]) {
 
 }
 
-void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parchment,uint *changeflag,struct enem *enemies,float proyec[],Mix_Chunk *fx[]) {
+void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parchment,uint *changeflag,struct enem *enemies,float proyec[],Sound *fx[]) {
 
 	int x = 0;
 	int y = 0;
@@ -311,7 +311,7 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 						stagedata[jean->checkpoint[3]][v][h] -= 6;
 				}
 			}
-			Mix_PlayChannel(-1, fx[2], 0);
+			aud_PlaySound(-1, fx[2], 0);
 		}
 
 		/* Touch bell */
@@ -324,10 +324,10 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 					}
 				}
 				jean->flags[1] = 1;
-				Mix_PauseMusic ();
-				Mix_PlayChannel(-1, fx[5], 0);
+				aud_PauseMusic ();
+				aud_PlaySound(-1, fx[5], 0);
 				sleep(2);
-				Mix_ResumeMusic ();
+				aud_ResumeMusic ();
 			}
 		}
 
@@ -345,10 +345,10 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 				jean->flags[2] = 1;
 			if (room[0] == 20)
 				jean->flags[4] = 1;
-			Mix_PauseMusic ();
-			Mix_PlayChannel(-1, fx[5], 0);
+			aud_PauseMusic ();
+			aud_PlaySound(-1, fx[5], 0);
 			sleep(2);
-			Mix_ResumeMusic ();
+			aud_ResumeMusic ();
 		}
 
 
@@ -369,7 +369,7 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 				}
 				if (jean->state[0] < 9)
 					jean->state[0] += 1;
-				Mix_PlayChannel(-1, fx[2], 0);;
+				aud_PlaySound(-1, fx[2], 0);;
 			}
 		}
 		else {
@@ -382,7 +382,7 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 				}
 				if (jean->state[0] < 9)
 					jean->state[0] += 1;
-				Mix_PlayChannel(-1, fx[2], 0);
+				aud_PlaySound(-1, fx[2], 0);
 			}
 		}
 
@@ -395,7 +395,7 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 				}
 			}
 			jean->state[1] += 1;
-			Mix_PlayChannel(-1, fx[2], 0);;
+			aud_PlaySound(-1, fx[2], 0);;
 		}
 
 		/* Touch yellow parchment */
@@ -432,7 +432,7 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 									 jean->y = 136;
 								   break;
 				}
-				Mix_PlayChannel(-1, fx[1], 0);;
+				aud_PlaySound(-1, fx[1], 0);;
 				*changeflag = 1;
 			}
 		}
@@ -467,18 +467,18 @@ void touchobj (struct hero *jean,uint stagedata[][22][32],uint room[],uint *parc
 						}
 					}
 				}
-			Mix_PauseMusic ();
-			Mix_PlayChannel(-1, fx[5], 0);;
+			aud_PauseMusic ();
+			aud_PlaySound(-1, fx[5], 0);;
 			sleep(2);
-			Mix_ResumeMusic ();
+			aud_ResumeMusic ();
 			}
 		}
 
 		/* Touch cup */
 		if (room[0] == 24) {
 			if ((stagedata[room[0]][y][x+1] == 650) || (stagedata[room[0]][y+1][x+1] == 650) || (stagedata[room[0]][y+2][x+1] == 650)) {
-				Mix_HaltMusic ();
-				Mix_PlayChannel(-1, fx[5], 0);
+				aud_StopMusic ();
+				aud_PlaySound(-1, fx[5], 0);
 				sleep(2);
 				stagedata[24][3][15] = 0; /* Delete cup */
 				/* Delete crosses */
@@ -536,7 +536,7 @@ void contact (struct hero *jean,struct enem enemies,float proyec[],uint room[]) 
 								x=points[1] + 1;
 							}
 							else {
-								/* Mix_HaltMusic (); */
+								/* aud_StopMusic (); */
 								jean->flags[6] = 6;
 							}
 						}

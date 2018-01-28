@@ -2,14 +2,15 @@
 
 # include "game.h"
 
-void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen) {
+static uint stagedata[25][22][32];
+static int enemydata[25][7][15];
+
+void game(uint8_t *state,uint8_t *grapset,uint8_t *fullscreen) {
 
 	/* Sounds */
-	Mix_Music *bso[8];
-	Mix_Chunk *fx[7];
+	Music *bso[8];
+	Sound *fx[7];
 
-	uint stagedata[25][22][32];
-	int enemydata[25][7][15];
 	uint room[2] = {5,5}; /* Room, previous room */
 	uint exit = 0;
 	uint changeflag = 1; /* Screen change */
@@ -23,11 +24,9 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 	uint winfull = *fullscreen;
 
 	/* Loading PNG */
-	SDL_Surface *tilesb = IMG_Load(DATADIR "/graphics/tiles.png");
-	SDL_SetColorKey(tilesb, SDL_TRUE, SDL_MapRGB(tilesb->format, 0, 0, 0) );
-	SDL_Texture *tiles = SDL_CreateTextureFromSurface(renderer, tilesb);
-	SDL_FreeSurface(tilesb);
-	SDL_Texture *fonts = IMG_LoadTexture(renderer, DATADIR "/graphics/fonts.png");
+	RGB c = { 0, 0, 0 };
+	Texture *tiles = gfx_LoadTexture("/graphics/tiles.png", &c);
+	Texture *fonts = gfx_LoadTexture("/graphics/fonts.png", NULL);
 
 	/* Loading musics */
 	loadingmusic(bso,fx);
@@ -75,13 +74,13 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 	};
 
 	/* Game loop */
-	while (exit != 1) {
+	while (exit != 1 && aptMainLoop()) {
 
 		/* Manage counters */
 		counters(counter);
 
 		/* Cleaning the renderer */
-		SDL_RenderClear(renderer);
+		gfx_Clear();
 
 		/* Change graphic set requested */
 		if (keyp == 9) {
@@ -91,19 +90,6 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 			else
 				changetiles = 0;
 			*grapset = changetiles;
-		}
-
-		/* Switch fullscreen/windowed requested */
-		if (keyp == 6) {
-			if (*fullscreen == 0) {
-				SDL_SetWindowFullscreen(screen,SDL_WINDOW_FULLSCREEN_DESKTOP);
-				*fullscreen = 1;
-			}
-			else {
-				SDL_SetWindowFullscreen(screen,0);
-				*fullscreen = 0;
-			}
-			keyp = 0;
 		}
 
 		/* Exit requested */
@@ -116,42 +102,42 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 		animation(stagedata,room,counter);
 
 		/* Draw screen */
-		drawscreen(renderer,stagedata,tiles,room,counter,changeflag,fx,changetiles);
+		drawscreen(stagedata,tiles,room,counter,changeflag,fx,changetiles);
 
 		/* Draw statusbar */
 		if (room[0] != 4)
-			statusbar(renderer,tiles,room,jean.state[0],jean.state[1],fonts,changetiles);
+			statusbar(tiles,room,jean.state[0],jean.state[1],fonts,changetiles);
 
 		/* Draw Jean */
 		if (jean.flags[6] < 8)
-			drawjean (renderer,tiles,&jean,counter,fx,changetiles);
+			drawjean (tiles,&jean,counter,fx,changetiles);
 
 		/* Enemies */
 		if (enemies.type[0] > 0) {
 			if (room[0] != 4)
 				movenemies (&enemies,stagedata,counter,proyec,jean,fx);
 			if ((room[0] == 5) || (room[0] == 6))
-				crusaders (&enemies,renderer,tiles,counter,room,changetiles);
+				crusaders (&enemies,tiles,counter,room,changetiles);
 			if (room[0] == 10)
-				dragon (&enemies,renderer,tiles,counter,proyec,fx,changetiles);
+				dragon (&enemies,tiles,counter,proyec,fx,changetiles);
 			if (room[0] == 11)
-				fireball (&enemies,renderer,tiles,counter,jean,stagedata,changetiles);
+				fireball (&enemies,tiles,counter,jean,stagedata,changetiles);
 			if (room[0] == 14)
-				plants (&enemies,renderer,tiles,counter,proyec,fx,changetiles);
+				plants (&enemies,tiles,counter,proyec,fx,changetiles);
 			if (room[0] == 9)
-				drawrope (enemies,renderer,tiles,changetiles);
+				drawrope (enemies,tiles,changetiles);
 			if (room[0] == 18)
-				death (&enemies,renderer,tiles,counter,proyec,stagedata,fx,changetiles);
+				death (&enemies,tiles,counter,proyec,stagedata,fx,changetiles);
 			if ((room[0] == 24) && (enemies.type[0] == 18))
-				satan (&enemies,renderer,tiles,counter,proyec,fx,changetiles);
+				satan (&enemies,tiles,counter,proyec,fx,changetiles);
 			if ((room[0] == 24) && (jean.flags[6] == 5))
-				crusaders (&enemies,renderer,tiles,counter,room,changetiles);
-			drawenemies (&enemies,renderer,tiles,fx,changetiles);
+				crusaders (&enemies,tiles,counter,room,changetiles);
+			drawenemies (&enemies,tiles,fx,changetiles);
 		}
 
 		/* Shoots */
 		if ((proyec[0] > 0) && ((room[0] == 17) || (room[0] == 20) || (room[0] == 21) || (room[0] == 22)))
-		  drawshoots (proyec,tiles,renderer,&enemies,changetiles);
+		  drawshoots (proyec,tiles,&enemies,changetiles);
 
 		/* Jean management */
 		if (jean.death == 0) {
@@ -187,7 +173,7 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 				jean.death = 0;
 				jean.temp = 1;
 				music (room,bso,&changeflag,jean.flags[6]);
-				Mix_ResumeMusic ();
+				aud_ResumeMusic ();
 			}
 			else {
 				jean.death = 0;
@@ -215,29 +201,29 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 		}
 		/* Parchments */
 		if (parchment > 0)
-			showparchment (renderer,&parchment);
+			showparchment(&parchment);
 		if (jean.flags[6] == 3)
-			redparchment (renderer,&jean);
+			redparchment (&jean);
 		if (jean.flags[6] == 6)
-			blueparchment (renderer,&jean);
+			blueparchment (&jean);
 
 		/* Flip ! */
-		SDL_RenderPresent(renderer);
+		gfx_Flip();
 
 		if (parchment > 0) {
-			Mix_PlayChannel(-1, fx[2], 0);
-			Mix_PauseMusic ();
+			aud_PlaySound(-1, fx[2], 0);
+			aud_PauseMusic();
 			/* Waiting a key */
 			while (keyp == 0)
-				keybpause (&keyp);
+				keybpause(&keyp);
 			jean.push[2] = 0;
 			jean.push[3] = 0;
 			keyp = 0;
-			Mix_ResumeMusic ();
+			aud_ResumeMusic();
 			parchment = 0;
 		}
 		if (jean.flags[6] == 4) {
-			Mix_PlayChannel(-1, fx[2], 0);
+			aud_PlaySound(-1, fx[2], 0);
 			sleep(5);
 			jean.flags[6] = 5;
 			jean.direction = 0;
@@ -255,29 +241,27 @@ void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen
 		}
 
 		if (jean.state[0] == 0) {
-			Mix_HaltMusic();
+			aud_PauseMusic();
 			/* Mix_FreeMusic(sonido); */
 			*state = 3;
 			exit = 1;
 		}
 
+		
 	}
 
 	/* Cleaning */
-	SDL_DestroyTexture(tiles);
-	SDL_DestroyTexture(fonts);
+	gfx_FreeTexture(tiles);
+	gfx_FreeTexture(fonts);
 	for (i=0;i<8;i++)
-		Mix_FreeMusic(bso[i]);
+		aud_FreeMusic(bso[i]);
 	for (i=0;i<7;i++)
-		Mix_FreeChunk(fx[i]);
+		aud_FreeSound(fx[i]);
 
 	*fullscreen = winfull;
-
-
-
 }
 
-void animation (uint stagedata[][22][32],int room[],int counter[]) {
+void animation (uint stagedata[][22][32],uint room[],uint counter[]) {
 
 	int i = 0;
 	int j = 0;
@@ -334,103 +318,63 @@ void counters (uint counter[]) {
 
 void control (struct hero *jean,uint *keyp) {
 
-	SDL_Event event;
+	inp_ScanInput();
 
-	if (*keyp > 0)
-		*keyp = 0;
+	//Down
+	if (btnB.pressed == 1)
+	{
+		if ((jean->push[0] == 0) && (jean->jump == 0) && (jean->ducking == 0))
+			jean->jump = 1;
+	}
 
-	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_QUIT)
-	   	exit(0);
-		if (event.type == SDL_KEYDOWN) {
-			if (event.key.keysym.sym == SDLK_UP) {
-				if ((jean->push[0] == 0) && (jean->jump == 0) && (jean->ducking == 0))
-					jean->jump = 1;
-			}
-			if (event.key.keysym.sym == SDLK_DOWN) {
-				if ((jean->push[1] == 0) && (jean->jump == 0)) {
-					jean->push[1] = 1;
-					jean->ducking = 1;
-				}
-			}
-			if (event.key.keysym.sym == SDLK_LEFT) {
-				if (jean->push[2] == 0) {
-					jean->push[2] = 1;
-					jean->push[3] = 0;
-				}
-			}
-			if (event.key.keysym.sym == SDLK_RIGHT) {
-				if (jean->push[3] == 0) {
-					jean->push[3] = 1;
-					jean->push[2] = 0;
-				}
-			}
-			if (event.key.keysym.sym == SDLK_f)
-				*keyp = 6;
-			if (event.key.keysym.sym == SDLK_c)
-				*keyp = 9;
-	   	if (event.key.keysym.sym == SDLK_ESCAPE)
-      	*keyp = 10;
-		}
-
-		if (event.type == SDL_KEYUP) {
-			if (event.key.keysym.sym == SDLK_UP)
-				jean->push[0] = 0;
-			if (event.key.keysym.sym == SDLK_DOWN) {
-				jean->push[1] = 0;
-				jean->ducking = 0;
-			}
-			if (event.key.keysym.sym == SDLK_LEFT)
-				jean->push[2] = 0;
-			if (event.key.keysym.sym == SDLK_RIGHT)
-				jean->push[3] = 0;
-		}
-
-		if (event.type == SDL_JOYAXISMOTION) {
-			if (event.jaxis.axis == X_JOYAXIS) {
-				if (event.jaxis.value < 0) {  // BUTTONDOWN LEFT	
-					jean->push[2] = 1;
-					jean->push[3] = 0;
-				}
-				if (event.jaxis.value > 0) {  // BUTTONDOWN RIGHT
-					jean->push[3] = 1;
-					jean->push[2] = 0;
-				}
-				if (event.jaxis.value == 0) { // BUTTONUP	
-					jean->push[2] = 0;
-					jean->push[3] = 0;
-				}
-			}
-			if (event.jaxis.axis == Y_JOYAXIS) {
-				if (event.jaxis.value > 0) {  // BUTTONDOWN DUCK
-					jean->push[1] = 1;
-					jean->ducking = 1;
-				}
-				if (event.jaxis.value == 0) { // BUTTONUP
-					jean->push[1] = 0;
-					jean->ducking = 0;
-				}
-			}
-
-		}
-
-		if (event.type == SDL_JOYBUTTONDOWN) {
-			if (event.jbutton.button == JUMP_JOYBUTTON)
-				if ((jean->push[0] == 0) && (jean->jump == 0) && (jean->ducking == 0))
-					jean->jump = 1;
-		
-			if (event.jbutton.button == SELECT_JOYBUTTON)
-      				*keyp = 10;
-		}
-		
-		if (event.type == SDL_JOYBUTTONUP) {
-				if (event.jbutton.button == JUMP_JOYBUTTON)
-					jean->push[0] = 0;
+	if (btnDown.pressed == true)
+	{
+		if ((jean->push[1] == 0) && (jean->jump == 0)) {
+			jean->push[1] = 1;
+			jean->ducking = 1;
 		}
 	}
+
+	if (btnLeft.pressed == true)
+	{
+		if (jean->push[2] == 0) {
+			jean->push[2] = 1;
+			jean->push[3] = 0;
+		}
+	}
+
+	if (btnRight.pressed == true)
+	{
+		if (jean->push[3] == 0) {
+			jean->push[3] = 1;
+			jean->push[2] = 0;
+		}
+	}
+
+	if (btnX.pressed == true)
+		*keyp = 9;
+
+	if (btnSelect.pressed == true)
+		*keyp = 10;
+
+	//Up
+	if (btnB.released == true)
+		jean->push[0] = 0;
+
+	if (btnDown.released == true)
+	{
+		jean->push[1] = 0;
+		jean->ducking = 0;
+	}
+
+	if (btnLeft.released == true)
+		jean->push[2] = 0;
+
+	if (btnRight.released == true)
+		jean->push[3] = 0;
 }
 
-void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter[],struct enem *enemies,Mix_Chunk *fx[]) {
+void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter[],struct enem *enemies,Sound *fx[]) {
 
 	int i = 0;
 	int x = 0;
@@ -463,7 +407,7 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 			stagedata[7][16][0] = 349;
 			stagedata[7][17][0] = 350;
 			jean->flags[0] = 1;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 			sleep(1);
 		}
 	}
@@ -475,7 +419,7 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 			stagedata[8][20][27] = 0;
 			stagedata[8][21][26] = 0;
 			stagedata[8][21][27] = 0;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 			sleep(1);
 		}
 		/* Open door */
@@ -484,7 +428,7 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 			stagedata[8][15][31] = 0;
 			stagedata[8][16][31] = 0;
 			stagedata[8][17][31] = 0;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 			sleep(1);
 		}
 	}
@@ -502,7 +446,7 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 			stagedata[19][17][0] = 0;
 			stagedata[19][18][0] = 0;
 			stagedata[19][19][0] = 0;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 			sleep(1);
 		}
 	}
@@ -513,7 +457,7 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 			stagedata[20][15][31] = 0;
 			stagedata[20][16][31] = 0;
 			stagedata[20][17][31] = 0;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 			sleep(1);
 		}
 	}
@@ -573,13 +517,13 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 			}
 			stagedata[24][y][x] = 84;
 			jean->state[1] --;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 		}
 		if ((jean->flags[6] == 1) && (jean->state[1] == 0) && (counter[0] == 29)) {
 			/* Draw cup */
 			stagedata[24][3][15] = 650;
 			jean->flags[6] = 2;
-			Mix_PlayChannel(-1, fx[1], 0);
+			aud_PlaySound(-1, fx[1], 0);
 		}
 		/* Killed Satan, Smoke appears */
 		if (enemies->type[0] == 88) {
@@ -601,94 +545,94 @@ void events (struct hero *jean,uint stagedata[][22][32],uint room[],uint counter
 	}
 }
 
-void music (uint room[],Mix_Music *bso[],uint *changeflag,int flag) {
+void music (uint room[],Music *bso[],uint *changeflag,int flag) {
 
 	if (room[0] == 1) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[0], 0);
+		aud_StopMusic();
+		aud_PlayMusic(bso[0], 0);
 	}
 	if ((room[0] == 2) && (room[1] == 1)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[1], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[1], -1);
 	}
 	if (room[0] == 4) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[2], 0);
+		aud_StopMusic();
+		aud_PlayMusic(bso[2], 0);
 	}
 	if ((room[0] == 5) && (room[1] != 6)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[7], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[7], -1);
 	}
 	if ((room[0] == 6) && (room[1] == 7)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[7], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[7], -1);
 	}
 	if ((room[0] == 7) && (room[1] == 6)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[1], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[1], -1);
 	}
 	if (((room[0] == 8) && (room[1] == 9)) || ((room[0] == 8) && (*changeflag == 2))) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[1], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[1], -1);
 	}
 	if (room[0] == 9) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[3], 0);
+		aud_StopMusic();
+		aud_PlayMusic(bso[3], 0);
 	}
 	if (((room[0] == 11) && (room[1] == 12)) || ((room[0] == 11) && (*changeflag == 2))) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[4], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[4], -1);
 	}
 	if (((room[0] == 12) && (room[1] == 11)) || ((room[0] == 12) && (*changeflag == 2))) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[1], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[1], -1);
 	}
 	if ((room[0] == 13) && (room[1] == 14)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[1], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[1], -1);
 	}
 	if (((room[0] == 14) && (room[1] == 13)) || ((room[0] == 14) && (*changeflag == 2))) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[4], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[4], -1);
 	}
 	if ((room[0] == 15) && (*changeflag == 2)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[4], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[4], -1);
 	}
 	if ((room[0] == 16) && (room[1] == 17)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[4], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[4], -1);
 	}
 	if ((room[0] == 17) && (room[1] == 16)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[1], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[1], -1);
 	}
 	if (room[0] == 18) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[5], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[5], -1);
 	}
 	if (((room[0] == 19) && (room[1] == 18)) || ((room[0] == 19) && (*changeflag == 2))) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[4], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[4], -1);
 	}
 	if ((room[0] == 20) && (room[1] == 21)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[4], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[4], -1);
 	}
 	if ((room[0] == 21) && (room[1] == 20)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[6], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[6], -1);
 	}
 	if ((room[0] == 23) && (room[1] == 24)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[6], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[6], -1);
 	}
 	if ((room[0] == 24) && (flag != 5)) {
-		Mix_HaltMusic();
-		Mix_PlayMusic(bso[5], -1);
+		aud_StopMusic();
+		aud_PlayMusic(bso[5], -1);
 	}
 	if ((room[0] == 24) && (flag == 5))
-		Mix_PlayMusic(bso[7], -1);
+		aud_PlayMusic(bso[7], -1);
 
  	*changeflag -= 1;
 
@@ -725,18 +669,8 @@ void changescreen (struct hero *jean,uint room[], uint *changeflag) {
 
 void keybpause (uint *keyp) {
 
-	SDL_Event event;
+	inp_ScanInput();
 
-	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_KEYDOWN) {
-			if ((event.key.keysym.sym == SDLK_SPACE) || (event.key.keysym.sym == SDLK_LEFT) || (event.key.keysym.sym == SDLK_RIGHT))
-					*keyp = 1;
-		}
-		if (event.type == SDL_JOYBUTTONDOWN) {
-			if (event.jbutton.button == JUMP_JOYBUTTON || event.jbutton.button == START_JOYBUTTON) {
-					*keyp = 1;
-			}
-		}
-	}
-
+	if (btnStart.pressed == true)
+		*keyp = 1;
 }

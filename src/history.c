@@ -2,21 +2,21 @@
 
 # include "base.h"
 
-void history(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen) {
+void history(uint8_t *state,uint8_t *grapset,uint8_t *fullscreen) {
 
-	SDL_Event keyp;
+	//SDL_Event keyp;
 
 	/* Load audio */
-	Mix_Music *music = Mix_LoadMUS(DATADIR "/sounds/ManhuntN.ogg");
+	Music *music = aud_LoadMusic("/sounds/ManhuntN.wav");
 
 	/* Loading PNG */
-	SDL_Texture *tiles = IMG_LoadTexture(renderer, DATADIR "/graphics/tiles.png");
-	SDL_Texture *text = IMG_LoadTexture(renderer, DATADIR "/graphics/history.png");
+	Texture *tiles = gfx_LoadTexture("/graphics/tiles.png", NULL);
+	Texture *text = gfx_LoadTexture("/graphics/history.png", NULL);
 
-	SDL_Rect srcjean = {384,88,16,24};
-	SDL_Rect desjean = {0,100,16,24};
-	SDL_Rect srcenem = {96,64,16,24};
-	SDL_Rect desenem = {0,100,16,24};
+	Rect srcjean = {384,88,16,24};
+	Rect desjean = {0,100,16,24};
+	Rect srcenem = {96,64,16,24};
+	Rect desenem = {0,100,16,24};
 
 	uint8_t exit = 0;
 	float posjean = -16;
@@ -24,19 +24,19 @@ void history(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscr
 	uint8_t animation = 0;
 	uint8_t musicload = 0;
 
-	while (exit != 1) {
+	while (exit != 1 && aptMainLoop()) {
 
 		/* Cleaning the renderer */
-		SDL_RenderClear(renderer);
+		gfx_Clear();
 
 		/* Play music at start */
 		if (musicload == 0) {
 			musicload = 1;
-			Mix_PlayMusic(music, 0);
+			aud_PlayMusic(music, 0);
 		}
 
 		/* Show text */
-		SDL_RenderCopy(renderer,text,NULL,NULL);
+		gfx_RenderCopy(text,NULL,NULL);
 
 		/* Animation control */
 		if (animation < 13)
@@ -50,7 +50,7 @@ void history(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscr
 			desjean.x = posjean;
 			srcjean.x = 384 + ((animation / 7) * 16); /* Walking animation */
 			srcjean.y = 88 + (*grapset * 120); /* 8 or 16 bits sprite */
-			SDL_RenderCopy(renderer,tiles,&srcjean,&desjean);
+			gfx_RenderCopy(tiles,&srcjean,&desjean);
 		}
 
 		/* Crusaders running */
@@ -65,51 +65,31 @@ void history(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscr
 				desenem.x = posenem[i];
 				srcenem.x = 96 + ((animation / 7) * 16);
 				srcenem.y = 64 + (*grapset * 120);
-				SDL_RenderCopy(renderer,tiles,&srcenem,&desenem);
+				gfx_RenderCopy(tiles,&srcenem,&desenem);
 			}
 		}
 
 		/* Check keyboard */
-		if ( SDL_PollEvent(&keyp) ) {
-			if (keyp.type == SDL_KEYDOWN) { /* Key pressed */
-				if (keyp.key.keysym.sym == SDLK_c) { /* Change graphic set */
-					if (*grapset == 0)
-						*grapset = 1;
-					else
-						*grapset = 0;
-				}
-				if (keyp.key.keysym.sym == SDLK_f) { /* Switch fullscreen/windowed */
-					if (*fullscreen == 0) {
-						SDL_SetWindowFullscreen(screen,SDL_WINDOW_FULLSCREEN_DESKTOP);
-						*fullscreen = 1;
-					}
-					else {
-						SDL_SetWindowFullscreen(screen,0);
-						*fullscreen = 0;
-					}
-				}
-				if (keyp.key.keysym.sym == SDLK_SPACE) { /* Start game */
-					*state = 2;
-					exit = 1;
-				}
-				if (keyp.key.keysym.sym == SDLK_ESCAPE) { /* Exit game */
-      					exit = 1;
-					*state = 6;
-				}
-			}
-			
-			if (keyp.type == SDL_JOYBUTTONDOWN) {
-				if (keyp.jbutton.button == JUMP_JOYBUTTON || keyp.jbutton.button == START_JOYBUTTON) {
-					*state = 2;
-					exit = 1;
-				}
-				if (keyp.jbutton.button == SELECT_JOYBUTTON) {
-					if (*grapset == 0)
-						*grapset = 1;
-					else
-						*grapset = 0;
-				}
-			}
+		inp_ScanInput();
+
+		// Change graphic set
+		if (btnX.pressed == 1) {
+			if (*grapset == 0)
+				*grapset = 1;
+			else
+				*grapset = 0;
+		}
+
+		// Start game
+		if (btnStart.pressed == 1) {
+			*state = 2;
+			exit = 1;
+		}
+
+		// Exit game
+		if (btnSelect.pressed == 1) {
+			exit = 1;
+			*state = 6;
 		}
 
 		if (posenem[3] > 256) { /* Ending history */
@@ -118,13 +98,14 @@ void history(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscr
 		}
 
 		/* Flip ! */
-		SDL_RenderPresent(renderer);
+		gfx_Flip();
 
 	}
 
 	/* Cleaning */
-	SDL_DestroyTexture(tiles);
-	SDL_DestroyTexture(text);
-	Mix_FreeMusic(music);
+	gfx_FreeTexture(tiles);
+	gfx_FreeTexture(text);
+	aud_StopMusic(music);
+	aud_FreeMusic(music);
 
 }

@@ -4,8 +4,8 @@
 
 # include "base.h"
 
-void startscreen(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen);
-void history(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen);
-void game(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen);
-void gameover(SDL_Window *screen,uint8_t *state);
-void ending (SDL_Window *screen,uint8_t *state);
+void startscreen(uint8_t *state,uint8_t *grapset,uint8_t *fullscreen);
+void history(uint8_t *state,uint8_t *grapset,uint8_t *fullscreen);
+void game(uint8_t *state,uint8_t *grapset,uint8_t *fullscreen);
+void gameover(uint8_t *state);
+void ending (uint8_t *state);

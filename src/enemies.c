@@ -26,10 +26,10 @@ void searchenemies (uint room[], struct enem *enemies,uint *changeflag, int enem
 
 }
 
-void drawenemies (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,Mix_Chunk *fx[],uint changetiles) {
+void drawenemies (struct enem *enemies,Texture *tiles,Sound *fx[],uint changetiles) {
 
-	SDL_Rect srctile = {0,0,16,16};
-	SDL_Rect destile = {0,0,16,16};
+	Rect srctile = {0,0,16,16};
+	Rect destile = {0,0,16,16};
 
 	for (uint8_t i=0; i<7; i++) {
 		if ((enemies->type[i] > 0) && (enemies->type[i] < 16)) {
@@ -58,7 +58,7 @@ void drawenemies (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles
 	  		destile.x = enemies->x[i];
 	  		destile.y = enemies->y[i];
 	  		if (((enemies->type[i] != 13) && (enemies->type[i] != 14)) || (((enemies->type[i] == 13) || (enemies->type[i] == 14)) && (enemies->y[i] < enemies->limright[i] - 8)))
-				SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+				gfx_RenderCopy(tiles,&srctile,&destile);
 
 	  		if (enemies->type[i] == 13) { /* Water movement */
 				if (((enemies->speed[i] > 30) && (enemies->speed[i] < 40)) || ((enemies->y[i] == enemies->limright[i] - 16) && (enemies->direction[i] == 1))) {
@@ -67,9 +67,10 @@ void drawenemies (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles
 				  	srctile.h = 8;
 					destile.h = 8;
 				  	destile.y = enemies->limright[i];
-					SDL_RenderCopy(renderer,tiles,&srctile,&destile);
-					if ((enemies->speed[i] > 30) && (enemies->speed[i] < 40))
-						Mix_PlayChannel(-1, fx[4], 0);;
+					gfx_RenderCopy(tiles,&srctile,&destile);
+					//if ((enemies->speed[i] > 30) && (enemies->speed[i] < 40))
+					if (enemies->speed[i] == 31)
+						aud_PlaySound(-1, fx[4], 0);;
 				}
 				if (((enemies->speed[i] > 39) && (enemies->speed[i] < 45)) || ((enemies->y[i] == enemies->limright[i] - 10) && (enemies->direction[i] == 1))) {
 			  		srctile.x = 384;
@@ -77,7 +78,7 @@ void drawenemies (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles
 					srctile.h = 8;
 					destile.h = 8;
 				  	destile.y = enemies->limright[i];
-					SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+					gfx_RenderCopy(tiles,&srctile,&destile);
 				}
 	  		}
 		}
@@ -94,16 +95,16 @@ void drawenemies (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles
 			destile.h = 48;
 			destile.x = enemies->x[i];
 			destile.y = enemies->y[i];
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 			if (enemies->speed[i] == 5)
-				Mix_PlayChannel(-1, fx[6], 0);;
+				aud_PlaySound(-1, fx[6], 0);;
 		}
 
 	}
 
 }
 
-void movenemies (struct enem *enemies,uint stagedata[][22][32],uint counter[],float proyec[],struct hero jean,Mix_Chunk *fx[]) {
+void movenemies (struct enem *enemies,uint stagedata[][22][32],uint counter[],float proyec[],struct hero jean,Sound *fx[]) {
 
 	for (uint8_t i=0; i<7; i++) {
 		if ((enemies->type[i] > 0) && (enemies->type[i] < 10)) {
@@ -201,7 +202,7 @@ void movenemies (struct enem *enemies,uint stagedata[][22][32],uint counter[],fl
 						if (n > 0)
 							proyec[n+1] = i;
 						n = 5;
-						Mix_PlayChannel(-1, fx[0], 0);;
+						aud_PlaySound(-1, fx[0], 0);;
 					}
 				}
 			}
@@ -258,12 +259,12 @@ void movenemies (struct enem *enemies,uint stagedata[][22][32],uint counter[],fl
 	}
 }
 
-void plants (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint counter[],float proyec[],Mix_Chunk *fx[],uint changetiles) {
+void plants (struct enem *enemies,Texture *tiles,uint counter[],float proyec[],Sound *fx[],uint changetiles) {
 
-	SDL_Rect srctile = {0,40,16,16};
-	SDL_Rect destile = {0,0,16,16};
-	SDL_Rect srcfire = {660,32,4,4};
-	SDL_Rect desfire = {0,0,4,4};
+	Rect srctile = {0,40,16,16};
+	Rect destile = {0,0,16,16};
+	Rect srcfire = {660,32,4,4};
+	Rect desfire = {0,0,4,4};
 
 	/* Animation */
 	for (uint8_t n=1; n<4; n++) {
@@ -282,7 +283,7 @@ void plants (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint
 		destile.x = enemies->x[n];
 		destile.y = enemies->y[n];
 
-		SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+		gfx_RenderCopy(tiles,&srctile,&destile);
   }
 
 	/* Init fire */
@@ -293,7 +294,7 @@ void plants (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint
 	  	proyec[r+1] = enemies->y[n] - 1;
 	  	proyec[r+2] = enemies->x[n] + 16;
 	  	proyec[r+3] = enemies->y[n] - 1;
-	  	Mix_PlayChannel(-1, fx[0], 0);
+	  	aud_PlaySound(-1, fx[0], 0);
 		}
 	}
 
@@ -351,23 +352,23 @@ void plants (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint
 			srcfire.y = 32 + (changetiles * 120);
 			desfire.x = proyec[r];
 			desfire.y = proyec[r+1];
-			SDL_RenderCopy(renderer,tiles,&srcfire,&desfire);
+			gfx_RenderCopy(tiles,&srcfire,&desfire);
 		}
 		if (proyec[r+2] > 0) {
 			srcfire.y = 32 + (changetiles * 120);
 			desfire.x = proyec[r+2];
 			desfire.y = proyec[r+3];
-			SDL_RenderCopy(renderer,tiles,&srcfire,&desfire);
+			gfx_RenderCopy(tiles,&srcfire,&desfire);
 		}
 
 	}
 
 }
 
-void crusaders (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint counter[],uint room[],uint changetiles) {
+void crusaders (struct enem *enemies,Texture *tiles,uint counter[],uint room[],uint changetiles) {
 
-	SDL_Rect srctile = {96,64,16,24};
-	SDL_Rect destile = {0,0,16,24};
+	Rect srctile = {96,64,16,24};
+	Rect destile = {0,0,16,24};
 
 	for (uint8_t i=0; i<7; i++) {
 
@@ -457,22 +458,22 @@ void crusaders (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,u
 			srctile.y = 64 + (changetiles * 120);
 			destile.x = enemies->x[i];
 			destile.y = enemies->y[i];
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 		}
 
 	}
 
 }
 
-void death (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint counter[],float proyec[],uint stagedata[][22][32],Mix_Chunk *fx[],uint changetiles) {
+void death (struct enem *enemies,Texture *tiles,uint counter[],float proyec[],uint stagedata[][22][32],Sound *fx[],uint changetiles) {
 
-	SDL_Rect srcaxe = {0,56,16,16};
-	SDL_Rect desaxe = {0,0,16,16};
-	SDL_Rect srctile = {0,88,32,32};
-	SDL_Rect destile = {0,8,32,32};
-	int x = 0;
-	int y = 0;
-	int n = 0;
+	Rect srcaxe = {0,56,16,16};
+	Rect desaxe = {0,0,16,16};
+	Rect srctile = {0,88,32,32};
+	Rect destile = {0,8,32,32};
+	//int x = 0;
+	//int y = 0;
+	//int n = 0;
 
 	if (enemies->speed[0] < 60)
 	  enemies->speed[0]++;
@@ -500,7 +501,7 @@ void death (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 			  proyec[x] = enemies->y[0] + 35;
 			  proyec[x+1] = enemies->x[0];
 			  x = 9;
-			  Mix_PlayChannel(-1, fx[0], 0);
+			  aud_PlaySound(-1, fx[0], 0);
 			}
 	  }
 	}
@@ -527,7 +528,7 @@ void death (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 	srctile.x = 0 + (enemies->animation[0] * 32) + (enemies->direction[0] * 96);
 	srctile.y = 88 + (changetiles * 120);
 	destile.x = enemies->x[0];
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 
 	/* Axes movement */
 	for (uint8_t n=0; n<8; n+=2) {
@@ -564,20 +565,20 @@ void death (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 		  	/* Rotation */
 		  	srcaxe.x = 576 + (16 * (counter[2] / 2));
 			srcaxe.y = 56 + (changetiles * 120);
-			SDL_RenderCopy(renderer,tiles,&srcaxe,&desaxe);
+			gfx_RenderCopy(tiles,&srcaxe,&desaxe);
 		}
 	}
 
 }
 
-void dragon (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint counter[],float proyec[],Mix_Chunk *fx[],uint changetiles) {
+void dragon (struct enem *enemies,Texture *tiles,uint counter[],float proyec[],Sound *fx[],uint changetiles) {
 
-	SDL_Rect srctile = {456,72,16,8};
-	SDL_Rect destile = {120,40,16,8};
+	Rect srctile = {456,72,16,8};
+	Rect destile = {120,40,16,8};
 
 	/* Draw front paw */
 	srctile.y = 72 + (changetiles * 120);
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 
 	/* Head position */
 	if (enemies->speed[0] < 150) /* Using speed as temp */
@@ -599,14 +600,14 @@ void dragon (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint
 	destile.h = 24;
 	destile.x = 120;
 	destile.y = 8 + (enemies->animation[0] * 3);
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 
 	/* Draw snout */
 	srctile.h = 16;
 	srctile.x = 448;
 	destile.h = 16;
 	destile.y += 24;
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 
 	/* Spit fire */
 	if (enemies->animation[0] == 1) {
@@ -622,16 +623,16 @@ void dragon (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint
 		destile.y = 51;
 		destile.w = 24;
 		destile.h = 24;
-		SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+		gfx_RenderCopy(tiles,&srctile,&destile);
 		srctile.x = 480 + (enemies->direction[0] * 48);
 		destile.y = 75;
 		destile.x = 127;
-		SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+		gfx_RenderCopy(tiles,&srctile,&destile);
 	}
 
 	/* Make fire in ground */
 	if (enemies->speed[0] == 150) {
-	  Mix_PlayChannel(-1, fx[0], 0);;
+	  aud_PlaySound(-1, fx[0], 0);;
 	  for (uint8_t n=0; n<16; n+=8) {
 			if (proyec[n] == 0) {
 			  proyec[n] = 120;
@@ -690,17 +691,17 @@ void dragon (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint
 			destile.y = 88;
 			destile.w = 8;
 			destile.h = 8;
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 	  }
 	}
 }
 
-void satan (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint counter[],float proyec[],Mix_Chunk *fx[],uint changetiles) {
+void satan (struct enem *enemies,Texture *tiles,uint counter[],float proyec[],Sound *fx[],uint changetiles) {
 
-	SDL_Rect srctile = {192,88,32,24};
-	SDL_Rect destile = {192,0,32,24};
-	SDL_Rect srcfire = {656,32,4,4};
-	SDL_Rect desfire = {0,0,4,4};
+	Rect srctile = {192,88,32,24};
+	Rect destile = {192,0,32,24};
+	Rect srcfire = {656,32,4,4};
+	Rect desfire = {0,0,4,4};
 
 	/* Movement */
 	if (enemies->direction[0] == 0) { /* Subiendo */
@@ -728,10 +729,10 @@ void satan (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 	srctile.x = 192 + (enemies->animation[0] * 64);
 	srctile.y = 88 + (changetiles * 120);
 	destile.y = enemies->y[0];
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 	srctile.x = 224 + (enemies->animation[0] * 64);
 	destile.y = enemies->y[0] + 24;
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 
 	/* Init shoots */
 	if (((enemies->y[0] == 37) && (enemies->direction[0] == 0)) || ((enemies->y[0] == 20) && (enemies->direction[0] == 1)) || ((enemies->y[0] == 62) && (enemies->direction[0] == 0))) {
@@ -752,7 +753,7 @@ void satan (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 			proyec[r+3] = enemies->y[0] + 10;
 			proyec[r+4] = 190;
 			proyec[r+5] = enemies->y[0] + 20;
-			Mix_PlayChannel(-1, fx[0], 0);
+			aud_PlaySound(-1, fx[0], 0);
 		}
 	}
 
@@ -767,7 +768,7 @@ void satan (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 			srcfire.y = 32 + (changetiles * 120);
 			desfire.x = proyec[n];
 			desfire.y = proyec[n+1];
-			SDL_RenderCopy(renderer,tiles,&srcfire,&desfire);
+			gfx_RenderCopy(tiles,&srcfire,&desfire);
 	  }
 	  else {
 			proyec[n] = 0;
@@ -777,10 +778,10 @@ void satan (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint 
 
 }
 
-void fireball (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint counter[],struct hero jean, int stagedata[][22][32], uint changetiles) {
+void fireball (struct enem *enemies,Texture *tiles,uint counter[],struct hero jean, int stagedata[][22][32], uint changetiles) {
 
-	SDL_Rect srctile = {576,40,16,16};
-	SDL_Rect destile = {0,0,16,16};
+	Rect srctile = {576,40,16,16};
+	Rect destile = {0,0,16,16};
 
 	/* Current tile X and Y */
 	int16_t x = enemies->x[0] / 8;
@@ -837,6 +838,6 @@ void fireball (struct enem *enemies,SDL_Renderer *renderer,SDL_Texture *tiles,ui
 	srctile.y = 40 + (changetiles * 120);
 	destile.x = enemies->x[0];
 	destile.y = enemies->y[0];
-	SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+	gfx_RenderCopy(tiles,&srctile,&destile);
 
 }

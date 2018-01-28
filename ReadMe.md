@@ -3,7 +3,7 @@
 3DS port of the indie game *l'Abbaye des Morts* by Locomalito. It's written in C using the libctru and citro3d
 libraries.
 
-It's based on the linux port by nevat. [Link](https://github.com/nevat/abbayedesmorts-gpl)
+It's a modification of the linux port by nevat. [Link](https://github.com/nevat/abbayedesmorts-gpl)
 
 ## History
 

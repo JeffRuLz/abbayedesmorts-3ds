@@ -16,61 +16,34 @@ int main () {
 	uint8_t grapset = 0; /* 0-8bits, 1-16bits */
 	uint8_t fullscreen = 0; /* 0-Windowed,1-Fullscreen */
 
-	/* SDL2 initialization */
-	SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO);
+	/* 3DS initialization */
+	gfx_Init();
+	aud_Init();
 
-	/* Creating window */
-	SDL_Window *screen; 
-	if (fullscreen)
-		screen = SDL_CreateWindow(NULL, 0, 0, 0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP);
-	else	
-		screen = SDL_CreateWindow("Abbaye des Morts v2.0.1",
-			SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,768,576,0);
+	romfsInit();
 
-	/* Create renderer (with VSync, nice !) */
-	SDL_SetHint("SDL_HINT_RENDER_SCALE_QUALITY", "linear");
-	renderer = SDL_CreateRenderer(screen, -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
-	SDL_RenderSetLogicalSize(renderer, 256, 192);
-	SDL_SetRenderDrawColor(renderer,0,0,0,255);
-
-	/* Init joystick if there's one connected */
-	SDL_Joystick *joystick = NULL;
-
-	if ( SDL_Init(SDL_INIT_JOYSTICK) >= 0 )
-	{
-		joystick = SDL_NumJoysticks() > 0 ? SDL_JoystickOpen(0) : NULL; 
-		SDL_JoystickEventState(SDL_ENABLE);
-	}
-
-	/* Hide mouse cursor */
-	SDL_ShowCursor(SDL_DISABLE);
-
-	/* Init audio */
-	Mix_OpenAudio (44100,MIX_DEFAULT_FORMAT,2,4096);
-	Mix_AllocateChannels(5);
-
-	while (exit != 1) {
+	while (exit != 1 && aptMainLoop()) {
 		switch (state) {
-			case 0: startscreen(screen,&state,&grapset,&fullscreen);
+			case 0: startscreen(&state,&grapset,&fullscreen);
 							break;
-			case 1: history(screen,&state,&grapset,&fullscreen);
+			case 1: history(&state,&grapset,&fullscreen);
 							break;
-			case 2: game(screen,&state,&grapset,&fullscreen);
+			case 2: game(&state,&grapset,&fullscreen);
 							break;
-			case 3: gameover(screen,&state);
+			case 3: gameover(&state);
 							break;
-			case 4: ending(screen,&state);
+			case 4: ending(&state);
 							break;
-			case 6: exit = 1;
+			default: exit = 1;
 							break;
 		}
 	}
 
 	/* Cleaning */
-	SDL_JoystickClose(joystick);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(screen);
-	SDL_Quit();	
+	romfsExit();
+
+	aud_Exit();
+	gfx_Exit();
 
 	/* Exiting normally */
 	return 0;

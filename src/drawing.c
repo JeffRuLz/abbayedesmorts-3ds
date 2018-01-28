@@ -2,10 +2,10 @@
 
 # include "drawing.h"
 
-void drawscreen (SDL_Renderer *renderer,uint stagedata[][22][32],SDL_Texture *tiles,uint room[],uint counter[],uint changeflag,Mix_Chunk *fx[],uint changetiles) {
+void drawscreen (uint stagedata[][22][32],Texture *tiles,uint room[],uint counter[],uint changeflag,Sound *fx[],uint changetiles) {
 
-	SDL_Rect srctiles = {0,0,8,8};
-	SDL_Rect destiles = {0,0,8,8};
+	Rect srctiles = {0,0,8,8};
+	Rect destiles = {0,0,8,8};
 
 	for (uint8_t coordy=0; coordy<=21; coordy++) {
 		for (uint8_t coordx=0; coordx<=31; coordx++) {
@@ -52,7 +52,7 @@ void drawscreen (SDL_Renderer *renderer,uint stagedata[][22][32],SDL_Texture *ti
 						if ((data == 347) || (data == 348) || (data == 349) || (data == 350)) {
 							destiles.x += 2;
 							if ((data == 350) && (counter[1] == 70))
-								Mix_PlayChannel(-1, fx[3], 0); /* Sound of door */
+								aud_PlaySound(-1, fx[3], 0); /* Sound of door */
 						}
 					}
 				}
@@ -94,12 +94,12 @@ void drawscreen (SDL_Renderer *renderer,uint stagedata[][22][32],SDL_Texture *ti
 				if ((data == 152) || (data == 137) || (data == 136)) {
 					if (changeflag == 0) {
 						srctiles.y = srctiles.y + (changetiles * 120);
-						SDL_RenderCopy(renderer,tiles,&srctiles,&destiles);
+						gfx_RenderCopy(tiles,&srctiles,&destiles);
 					}
 				}
 				else {
 					srctiles.y = srctiles.y + (changetiles * 120);
-					SDL_RenderCopy(renderer,tiles,&srctiles,&destiles);
+					gfx_RenderCopy(tiles,&srctiles,&destiles);
 				}
 			}
 		}
@@ -107,50 +107,50 @@ void drawscreen (SDL_Renderer *renderer,uint stagedata[][22][32],SDL_Texture *ti
 
 }
 
-void statusbar (SDL_Renderer *renderer,SDL_Texture *tiles,int room[],int lifes,int crosses,SDL_Texture *fonts,uint changetiles) {
+void statusbar (Texture *tiles,uint room[],int lifes,int crosses,Texture *fonts,uint changetiles) {
 
-	SDL_Rect srcbar = {448,104,13,12};
-	SDL_Rect desbar = {0,177,13,12};
-	SDL_Rect srcnumbers = {0,460,10,10};
-	SDL_Rect desnumbers = {18,178,10,10};
-	SDL_Rect srctext = {0,0,140,20};
-	SDL_Rect destext = {115,176,136,18};
+	Rect srcbar = {448,104,13,12};
+	Rect desbar = {0,177,13,12};
+	Rect srcnumbers = {0,460,10,10};
+	Rect desnumbers = {18,178,10,10};
+	Rect srctext = {0,0,140,20};
+	Rect destext = {115,176,136,18};
 
 	/* Show heart and crosses sprites */
 	if (changetiles == 1)
 		srcbar.y = 224;
-	SDL_RenderCopy(renderer,tiles,&srcbar,&desbar);
+	gfx_RenderCopy(tiles,&srcbar,&desbar);
 	srcbar.x = 461;
 	srcbar.w = 12;
 	desbar.x = 32;
-	SDL_RenderCopy(renderer,tiles,&srcbar,&desbar);
+	gfx_RenderCopy(tiles,&srcbar,&desbar);
 
 	for (uint8_t i=0; i<=2; i++) {
 		switch (i) {
 			case 0: 	srcnumbers.x = lifes * 10;
-						SDL_RenderCopy(renderer,fonts,&srcnumbers,&desnumbers);
+						gfx_RenderCopy(fonts,&srcnumbers,&desnumbers);
 						break;
 			case 1: 	if (crosses < 10) {
 							desnumbers.x = 50;
 							srcnumbers.x = crosses * 10;
-							SDL_RenderCopy(renderer,fonts,&srcnumbers,&desnumbers);
+							gfx_RenderCopy(fonts,&srcnumbers,&desnumbers);
 						}
 						else {
 							desnumbers.x = 50;
 							srcnumbers.x = 10;
-							SDL_RenderCopy(renderer,fonts,&srcnumbers,&desnumbers);
+							gfx_RenderCopy(fonts,&srcnumbers,&desnumbers);
 							desnumbers.x = 55;
 							srcnumbers.x = (crosses - 10) * 10;
-							SDL_RenderCopy(renderer,fonts,&srcnumbers,&desnumbers);
+							gfx_RenderCopy(fonts,&srcnumbers,&desnumbers);
 						}
 						break;
 			case 2: 	if ((room[0] > 0) && (room[0] < 4)) {
 							srctext.y = (room[0] - 1) * 20;
-							SDL_RenderCopy(renderer,fonts,&srctext,&destext);
+							gfx_RenderCopy(fonts,&srctext,&destext);
 					  	}
 						if (room[0] > 4) {
 							srctext.y = (room[0] - 2) * 20;
-							SDL_RenderCopy(renderer,fonts,&srctext,&destext);
+							gfx_RenderCopy(fonts,&srctext,&destext);
 						}
 						break;
 		}
@@ -159,10 +159,10 @@ void statusbar (SDL_Renderer *renderer,SDL_Texture *tiles,int room[],int lifes,i
 
 }
 
-void drawrope (struct enem enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uint changetiles) {
+void drawrope (struct enem enemies,Texture *tiles,uint changetiles) {
 
-	SDL_Rect srctile = {424,8,16,8};
-	SDL_Rect destile = {0,0,16,8};
+	Rect srctile = {424,8,16,8};
+	Rect destile = {0,0,16,8};
 
 	for (uint8_t i=2; i<6; i++) {
 		int16_t blocks = (enemies.y[i] - (enemies.limleft[i] - 8)) / 8;
@@ -170,17 +170,17 @@ void drawrope (struct enem enemies,SDL_Renderer *renderer,SDL_Texture *tiles,uin
 			srctile.y = 8 + (changetiles * 120);
 	  		destile.x = enemies.x[i];
 	  		destile.y = (enemies.limleft[i] - 8) + (8 * j);
-			SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+			gfx_RenderCopy(tiles,&srctile,&destile);
 		}
 	}
 
 }
 
-void drawshoots (float proyec[],SDL_Texture *tiles,SDL_Renderer *renderer,struct enem *enemies,uint changetiles) {
+void drawshoots (float proyec[],Texture *tiles,struct enem *enemies,uint changetiles) {
 /* Shoots from skeletons & gargoyles */
 
-	SDL_Rect srctile = {656,24,16,8};
-	SDL_Rect destile = {0,0,0,0};
+	Rect srctile = {656,24,16,8};
+	Rect destile = {0,0,0,0};
 
 	srctile.y = 24 + (changetiles * 120);
 
@@ -219,13 +219,13 @@ void drawshoots (float proyec[],SDL_Texture *tiles,SDL_Renderer *renderer,struct
 					case 0: 	if ((proyec[n] < (enemies->limright[i] - 8)) && (proyec[n] != 0)) {
 							  		destile.x = proyec[n];
 									destile.y = enemies->y[i] + 8;
-									SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+									gfx_RenderCopy(tiles,&srctile,&destile);
 								}
 								break;
 					case 1: 	if (proyec[n] > (enemies->limleft[i] + 8)) {
 									destile.x = proyec[n];
 									destile.y = enemies->y[i] + 8;
-									SDL_RenderCopy(renderer,tiles,&srctile,&destile);
+									gfx_RenderCopy(tiles,&srctile,&destile);
 								}
 								break;
 	  		}
@@ -235,45 +235,57 @@ void drawshoots (float proyec[],SDL_Texture *tiles,SDL_Renderer *renderer,struct
 
 }
 
-void showparchment (SDL_Renderer *renderer,uint *parchment) {
+void showparchment (uint *parchment) {
+	
+	gfx_Flip();
 
-	SDL_Texture *yparchment = NULL;
+	Texture* yparchment = NULL;
 
 	switch (*parchment) {
-		case 3: yparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/parchment1.png");
+		case 3: yparchment = gfx_LoadTexture("/graphics/parchment1.png", NULL);
 						break;
-		case 8:	yparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/parchment2.png");
+		case 8:	yparchment = gfx_LoadTexture("/graphics/parchment2.png", NULL);
 						break;
-		case 12: yparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/parchment3.png");
+		case 12: yparchment = gfx_LoadTexture("/graphics/parchment3.png", NULL);
 						 break;
-		case 14: yparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/parchment4.png");
+		case 14: yparchment = gfx_LoadTexture("/graphics/parchment4.png", NULL);
 						 break;
-		case 16: yparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/parchment5.png");
+		case 16: yparchment = gfx_LoadTexture("/graphics/parchment5.png", NULL);
 						 break;
-		case 21: yparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/parchment6.png");
+		case 21: yparchment = gfx_LoadTexture("/graphics/parchment6.png", NULL);
 						 break;
-
 	}
 
-	SDL_RenderCopy(renderer,yparchment,NULL,NULL);
-	SDL_DestroyTexture(yparchment);
+	gfx_Clear();
 
+	gfx_RenderCopy(yparchment,NULL,NULL);
+	gfx_FreeTexture(yparchment);
 }
 
-void redparchment (SDL_Renderer *renderer,struct hero *jean) {
+void redparchment (struct hero *jean) {
 
-	SDL_Texture *rparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/redparch.png");
-	SDL_RenderCopy(renderer,rparchment,NULL,NULL);
-	SDL_DestroyTexture(rparchment);
+	gfx_Flip();
+
+	Texture *rparchment = gfx_LoadTexture("/graphics/redparch.png", NULL);
+
+	gfx_Clear();
+
+	gfx_RenderCopy(rparchment,NULL,NULL);
+	gfx_FreeTexture(rparchment);
 
 	jean->flags[6] = 4;
 
 }
 
-void blueparchment (SDL_Renderer *renderer,struct hero *jean) {
+void blueparchment (struct hero *jean) {
 
-	SDL_Texture *bparchment = IMG_LoadTexture(renderer, DATADIR "/graphics/blueparch.png");
-	SDL_RenderCopy(renderer,bparchment,NULL,NULL);
-	SDL_DestroyTexture(bparchment);
+	gfx_Flip();
+
+	Texture *bparchment = gfx_LoadTexture("/graphics/blueparch.png", NULL);
+
+	gfx_Clear();
+
+	gfx_RenderCopy(bparchment,NULL,NULL);
+	gfx_FreeTexture(bparchment);
 
 }

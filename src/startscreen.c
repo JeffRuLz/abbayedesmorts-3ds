@@ -2,96 +2,80 @@
 
 # include "base.h"
 
-void startscreen(SDL_Window *screen,uint8_t *state,uint8_t *grapset,uint8_t *fullscreen) {
+void startscreen(uint8_t *state,uint8_t *grapset,uint8_t *fullscreen) {
 
 	uint8_t exit = 0;
 	uint8_t musicplay = 0;
 
-	SDL_Rect srcintro = {0,0,256,192};
-	SDL_Rect desintro = {0,0,256,192};
+	Rect srcintro = {0,0,256,192};
+	Rect desintro = {0,0,256,192};
 
-	SDL_Event keyp;
+	//SDL_Event keyp;
 
 	/* Loading PNG */
-	SDL_Texture *intro = IMG_LoadTexture(renderer, DATADIR "/graphics/intro.png");
-	SDL_Texture *intromd = IMG_LoadTexture(renderer, DATADIR "/graphics/intromd.png");
+	Texture *intro = gfx_LoadTexture("/graphics/intro.png", NULL);
+	Texture *intromd = gfx_LoadTexture("/graphics/intromd.png", NULL);
 
 	/* Load audio */
-	Mix_Music *music = Mix_LoadMUS(DATADIR "/sounds/MainTitleN.ogg");
+	Music *music = aud_LoadMusic("/sounds/MainTitleN.wav");
 
-	while (exit != 1) {
+	while (exit != 1  && aptMainLoop()) {
 
 		/* Cleaning the renderer */
-		SDL_RenderClear(renderer);
+		gfx_Clear();
 
 		/* Put image on renderer */
 		if (*grapset == 0)
-			SDL_RenderCopy(renderer, intro, &srcintro, &desintro);
+			gfx_RenderCopy(intro, &srcintro, &desintro);
 		else
-			SDL_RenderCopy(renderer, intromd, &srcintro, &desintro);
+			gfx_RenderCopy(intromd, &srcintro, &desintro);
 
 		/* Flip ! */
-		SDL_RenderPresent(renderer);
+		gfx_Flip();
 
 		/* Play music if required */
 		if (musicplay == 0) {
 			musicplay = 1;
-			Mix_PlayMusic(music, 0);
+			aud_PlayMusic(music, 0);
 		}
 
 		/* Check keyboard */
-		if ( SDL_PollEvent(&keyp) ) {
-			if (keyp.type == SDL_KEYDOWN) { /* Key pressed */
-				if (keyp.key.keysym.sym == SDLK_c) { /* Change graphic set */
-					if (*grapset == 0)
-						*grapset = 1;
-					else
-						*grapset = 0;
-				}
-				if (keyp.key.keysym.sym == SDLK_i) { /* Show instructions */
-					if (srcintro.y == 0)
-						srcintro.y = 192;
-					else {
-						srcintro.y = 0;
-						musicplay = 0;
-					}
-				}
-				if (keyp.key.keysym.sym == SDLK_f) { /* Switch fullscreen/windowed */
-					if (*fullscreen == 0) {
-						SDL_SetWindowFullscreen(screen,SDL_WINDOW_FULLSCREEN_DESKTOP);
-						*fullscreen = 1;
-					}
-					else {
-						SDL_SetWindowFullscreen(screen,0);
-						*fullscreen = 0;
-					}
-				}
-				if (keyp.key.keysym.sym == SDLK_SPACE) { /* Start game */
-					*state = 1;
-					exit = 1;
-				}
-				if (keyp.key.keysym.sym == SDLK_ESCAPE) { /* Exit game */
-      					exit = 1;
-					*state = 6;
-				}
+		inp_ScanInput();
+
+		// Change graphic set
+		if (btnX.pressed == 1) {
+			if (*grapset == 0)
+				*grapset = 1;
+			else
+				*grapset = 0;
+		}
+
+		// Show instructions
+		if (btnY.pressed == 1) {
+			if (srcintro.y == 0)
+				srcintro.y = 192;
+			else {
+				srcintro.y = 0;
+				musicplay = 0;
 			}
-			
-			if (keyp.type == SDL_JOYBUTTONDOWN) {
-				if (keyp.jbutton.button == JUMP_JOYBUTTON || keyp.jbutton.button == START_JOYBUTTON) {
-					*state = 1;
-					exit = 1;
-				}
-				if (keyp.jbutton.button == SELECT_JOYBUTTON) {
-					if (*grapset == 0)
-						*grapset = 1;
-					else
-						*grapset = 0;
-				}
-			}
+		}
+
+		// Start game
+		if (btnStart.pressed == 1) {
+			*state = 1;
+			exit = 1;
+		}
+
+		// Exit game
+		if (btnSelect.pressed == 1) {
+			exit = 1;
+			*state = 6;
 		}
 	}
 
 	/* Cleaning */
-	SDL_DestroyTexture(intro);
-	SDL_DestroyTexture(intromd);
+	gfx_FreeTexture(intro);
+	gfx_FreeTexture(intromd);
+	aud_StopMusic(music);
+	aud_FreeMusic(music);
 }

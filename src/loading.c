@@ -9,7 +9,7 @@ void loaddata(uint stagedata[][22][32],int enemydata[][7][15]) {
 	temp[3] = 0;
 
 	/* Loading stage data file */
-	datafile = fopen(DATADIR "/data/map.txt", "r");
+	datafile = fopen("romfs:/data/map.txt", "r");
 	fgets (line, 129, datafile);
 	fgets (line, 129, datafile);
 
@@ -31,7 +31,7 @@ void loaddata(uint stagedata[][22][32],int enemydata[][7][15]) {
 	fclose (datafile);
 
 	/* Loading enemies data file */
-	datafile = fopen(DATADIR "/data/enemies.txt", "r");
+	datafile = fopen("romfs:/data/enemies.txt", "r");
 	fgets (line2, 61, datafile);
 	fgets (line2, 61, datafile);
 
@@ -54,25 +54,25 @@ void loaddata(uint stagedata[][22][32],int enemydata[][7][15]) {
 
 }
 
-void loadingmusic(Mix_Music *bso[],Mix_Chunk *fx[]) {
+void loadingmusic(Music *bso[],Sound *fx[]) {
 
 	/* Musics */
-	bso[0] = Mix_LoadMUS(DATADIR "/sounds/PrayerofHopeN.ogg");
-	bso[1] = Mix_LoadMUS(DATADIR "/sounds/AreaIChurchN.ogg");
-	bso[2] = Mix_LoadMUS(DATADIR "/sounds/GameOverV2N.ogg");
-	bso[3] = Mix_LoadMUS(DATADIR "/sounds/HangmansTree.ogg");
-	bso[4] = Mix_LoadMUS(DATADIR "/sounds/AreaIICavesV2N.ogg");
-	bso[5] = Mix_LoadMUS(DATADIR "/sounds/EvilFightN.ogg");
-	bso[6] = Mix_LoadMUS(DATADIR "/sounds/AreaIIIHellN.ogg");
-	bso[7] = Mix_LoadMUS(DATADIR "/sounds/ManhuntwoodN.ogg");
+	bso[0] = aud_LoadMusic("/sounds/PrayerofHopeN.wav");
+	bso[1] = aud_LoadMusic("/sounds/AreaIChurchN.wav");
+	bso[2] = aud_LoadMusic("/sounds/GameOverV2N.wav");
+	bso[3] = aud_LoadMusic("/sounds/HangmansTree.wav");
+	bso[4] = aud_LoadMusic("/sounds/AreaIICavesV2N.wav");
+	bso[5] = aud_LoadMusic("/sounds/EvilFightN.wav");
+	bso[6] = aud_LoadMusic("/sounds/AreaIIIHellN.wav");
+	bso[7] = aud_LoadMusic("/sounds/ManhuntwoodN.wav");
 
 	/* Fxs */
-	fx[0] = Mix_LoadWAV (DATADIR "/sounds/shoot.ogg");
-	fx[1] = Mix_LoadWAV (DATADIR "/sounds/doorfx.ogg");
-	fx[2] = Mix_LoadWAV (DATADIR "/sounds/Item.ogg");
-	fx[3] = Mix_LoadWAV (DATADIR "/sounds/jump.ogg");
-	fx[4] = Mix_LoadWAV (DATADIR "/sounds/slash.ogg");
-	fx[5] = Mix_LoadWAV (DATADIR "/sounds/mechanismn.ogg");
-	fx[6] = Mix_LoadWAV (DATADIR "/sounds/onedeathn.ogg");
+	fx[0] = aud_LoadSound("/sounds/shoot.wav");
+	fx[1] = aud_LoadSound("/sounds/doorfx.wav");
+	fx[2] = aud_LoadSound("/sounds/Item.wav");
+	fx[3] = aud_LoadSound("/sounds/jump.wav");
+	fx[4] = aud_LoadSound("/sounds/slash.wav");
+	fx[5] = aud_LoadSound("/sounds/mechanismn.wav");
+	fx[6] = aud_LoadSound("/sounds/onedeathn.wav");
 
 }

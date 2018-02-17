@@ -5,6 +5,15 @@ libraries.
 
 It's a modification of the linux port by nevat. [Link](https://github.com/nevat/abbayedesmorts-gpl)
 
+## Another Abbaye des Morts port for 3DS?
+
+Abbaye des Morts has already been ported to the 3DS by Nop90. It's based on an old version of the linux port and uses his port of SDL 1.2.
+Unfortunately, it runs at half speed (For me, at least.) This is unacceptable for an already slow game.
+I first tried to fix his port and find the source of the slowdown but nothing I tried worked. So I decided to restart and port the game again.
+
+I based this port on the latest source code of the linux version. It has been re-written, uses SDL 2, and fixed a few issues.
+For this 3DS port, I replaced the SDL code with Citro3D and standard 3DS code. You can now play Abbaye des Morts at full speed on your 3DS!
+
 ## History
 
 [Abbaye des Morts](https://www.locomalito.com/abbaye_des_morts.php) is a freeware game
